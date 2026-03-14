@@ -1,12 +1,12 @@
 module i2c_slave (
-    input wire clk,         // Clock do sistema
-    input wire reset,       // Reset do sistema
-    input wire scl,         // Linha de clock I2C
-    inout wire sda,         // Linha de dados I2C
     output reg [263:0] data_out, // Dado recebido
     output reg [9:0] data_ready,     // Flag indicando dado recebido
     output reg start,          // Indica inicio e fim da transmissao
-    output reg bit_done
+    output reg bit_done,
+    input      clk,         // Clock do sistema
+    input      reset,       // Reset do sistema
+    input      scl,         // Linha de clock I2C
+    inout      sda         // Linha de dados I2C
 );
 
     // Constantes

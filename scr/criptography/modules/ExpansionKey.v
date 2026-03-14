@@ -1,8 +1,7 @@
 module expansion_key(
-    input  [127:0] key,
-    output reg [1407:0] round_key_flat
+    output reg [1407:0] round_key_flat,
+    input      [127:0] key
 );
-
     integer i;
     reg [31:0] temp;
     reg [31:0] w [0:43];  // vetor que guardas as 44 palavras de 32 bits para AES-128
@@ -10,7 +9,7 @@ module expansion_key(
     reg  [7:0] sb_in0, sb_in1, sb_in2, sb_in3;
     wire [7:0] sb_out0, sb_out1, sb_out2, sb_out3;
 
-    // Rcon: constantes para expansão, que são fixas e obtidas na FIPS 197
+    // values on FIPS 197
     wire [31:0] rcon [1:10];
     assign rcon[1]  = 32'h01000000;
     assign rcon[2]  = 32'h02000000;
@@ -23,10 +22,11 @@ module expansion_key(
     assign rcon[9]  = 32'h1b000000;
     assign rcon[10] = 32'h36000000;
 
-    sbox sbox0 (.endereco(sb_in0), .dado(sb_out0));
-    sbox sbox1 (.endereco(sb_in1), .dado(sb_out1));
-    sbox sbox2 (.endereco(sb_in2), .dado(sb_out2));
-    sbox sbox3 (.endereco(sb_in3), .dado(sb_out3));
+    // TODO: just 1 implementation and call it 4 times
+    sbox sbox0 (sb_out0, sb_in0);
+    sbox sbox1 (sb_out1, sb_in1);
+    sbox sbox2 (sb_out2, sb_in2);
+    sbox sbox3 (sb_out3, sb_in3);
 
     function [31:0] rot_word;
         input [31:0] word;

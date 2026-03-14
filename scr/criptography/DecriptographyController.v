@@ -1,4 +1,4 @@
-module criptography_controller(
+module decriptography_controller(
     output reg [127:0] word,
     output reg         done,
     input  [127:0]     chave,

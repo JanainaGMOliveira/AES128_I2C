@@ -1,8 +1,11 @@
 module top_i2c_aes128(
     output reg [127:0] cipher,
     output reg         done,
-    inout sda,
-    input scl,
+    // inout sda,
+    // input scl,
+    input [127:0] word, // for a initial test, will not use the i2c
+    input [127:0] key,
+    input operation,
     input clock,
     input reset
 );
@@ -11,20 +14,22 @@ module top_i2c_aes128(
     parameter CALCULATION_STATE = 2'b01;
     parameter RESULT_STATE = 2'b10;
 
-    wire [127:0] word, key, outCripto, outDecripto;
-    
-    wire operation; // 0: cripto, 1: decripto
+    wire [127:0] /*word, key,*/ outCripto, outDecripto;
+
+    //wire operation; // 0: cripto, 1: decripto
     wire startI2C;
-    wire doneI2C, doneCripto, doneDecripto;
+    wire doneI2C = 1;
+    wire doneCripto, doneDecripto;
 
     reg enableCripto, enableDecripto;
 
-    wire [263:0] auxI2Cout;
-    assign word = auxI2Cout[263:136];
-    assign key = auxI2Cout[135:8];
-    assign operation = auxI2Cout[0];
+    // wire [263:0] auxI2Cout;
+    // assign word = auxI2Cout[263:136];
+    // assign key = auxI2Cout[135:8];
+    // assign operation = auxI2Cout[0];
 
-    i2c_slave                 i2c(auxI2Cout, ,startI2C, doneI2C, clock, reset, scl, sda);
+    //TODO: should the cripto be the master?
+    //i2c_slave                 i2c(auxI2Cout, ,startI2C, doneI2C, clock, reset, scl, sda);
     criptography_controller   cripto(outCripto, doneCripto, key, word, enableCripto, reset, clock);
     decriptography_controller decripto(outDecripto, doneDecripto, key, word, enableDecripto, reset, clock);
 
@@ -42,7 +47,7 @@ module top_i2c_aes128(
                     enableCripto = 1'b0;
                     enableDecripto = 1'b0;
                     done = 1'b0;
-                    
+
                     if(doneI2C)
                     begin
                         enableCripto = !operation;
@@ -58,7 +63,7 @@ module top_i2c_aes128(
                         cipher = outCripto;
                         currentState = RESULT_STATE;
                     end
-                    else if (enableDecripto && doneDecripto) 
+                    else if (enableDecripto && doneDecripto)
                     begin
                         enableDecripto = 1'b0;
                         cipher = outDecripto;

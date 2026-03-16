@@ -14,7 +14,7 @@ module criptography_controller(
 	parameter SUBBYTES = 3'b011;
 	parameter SHIFTROWS = 3'b100;
 	parameter MIXCOL = 3'b101;
-	parameter ADDROUNDKEY = 3'b110,;
+	parameter ADDROUNDKEY = 3'b110;
 	parameter FINISHED = 3'b111;
 	
 	wire [127:0] auxInputState;

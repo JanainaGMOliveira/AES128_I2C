@@ -3,12 +3,10 @@ module tb_expansion_key;
 
     reg  [127:0] key;
     wire [1407:0] rk_flat; // Vetor para 11 chaves de 128bits
-    wire done; // Sinal de controle
 
     expansion_key tb_expk (
         .key               (key),
-        .round_key_flat    (rk_flat),
-        .key_expansion_done(done)
+        .round_key_flat    (rk_flat)
     );
 
     // ---------------------------------------------------------

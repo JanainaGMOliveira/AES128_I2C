@@ -1,7 +1,7 @@
 module decriptography_controller(
     output reg [127:0] word,
     output reg         done,
-    input  [127:0]     chave,
+    input  [127:0]     key,
     input  [127:0]     cipher,
     input              start,
     input              rst,
@@ -70,7 +70,7 @@ module decriptography_controller(
 			end
 			LOAD_KEYS:
 			begin
-				inputKey = chave;
+				inputKey = key;
 				inputState = 128'd0;
 				done = 1'b0;
 				word = 128'd0;

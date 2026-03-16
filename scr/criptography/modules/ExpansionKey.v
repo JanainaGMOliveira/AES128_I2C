@@ -1,15 +1,18 @@
-module expansion_key(
-    output reg [1407:0] round_key_flat,
-    input      [127:0] key
+`timescale 1ns / 1ps
+
+module expansion_key (
+    output reg [1407:0] round_key_flat, // 11 round keys with 128 bits (11 × 128 = 1408 bits)
+    input  [127:0] key // original key 128 bits
 );
+
     integer i;
     reg [31:0] temp;
-    reg [31:0] w [0:43];  // vetor que guardas as 44 palavras de 32 bits para AES-128
+    reg [31:0] w [0:43];
 
     reg  [7:0] sb_in0, sb_in1, sb_in2, sb_in3;
     wire [7:0] sb_out0, sb_out1, sb_out2, sb_out3;
 
-    // values on FIPS 197
+    // Rcon: FIPS 197
     wire [31:0] rcon [1:10];
     assign rcon[1]  = 32'h01000000;
     assign rcon[2]  = 32'h02000000;
@@ -22,11 +25,11 @@ module expansion_key(
     assign rcon[9]  = 32'h1b000000;
     assign rcon[10] = 32'h36000000;
 
-    // TODO: just 1 implementation and call it 4 times
-    sbox sbox0 (sb_out0, sb_in0);
-    sbox sbox1 (sb_out1, sb_in1);
-    sbox sbox2 (sb_out2, sb_in2);
-    sbox sbox3 (sb_out3, sb_in3);
+    /// TODO: just 1 implementation and call it 4 times
+    sbox sbox0 (.addr(sb_in0), .data(sb_out0));
+    sbox sbox1 (.addr(sb_in1), .data(sb_out1));
+    sbox sbox2 (.addr(sb_in2), .data(sb_out2));
+    sbox sbox3 (.addr(sb_in3), .data(sb_out3));
 
     function [31:0] rot_word;
         input [31:0] word;
@@ -35,7 +38,7 @@ module expansion_key(
         end
     endfunction
 
-    always @(*) 
+    always @(*)
     begin
         w[0] = key[127:96];
         w[1] = key[95:64];
@@ -54,7 +57,7 @@ module expansion_key(
                 sb_in1 = temp[23:16];
                 sb_in2 = temp[15:8];
                 sb_in3 = temp[7:0];
-
+                #1; // TODO: remove thisa delay
                 temp = {sb_out0, sb_out1, sb_out2, sb_out3};
 
                 temp = temp ^ rcon[i / 4];
@@ -62,9 +65,10 @@ module expansion_key(
             w[i] = w[i - 4] ^ temp;
         end
 
-        for (i = 0; i <= 10; i = i + 1) 
+        for (i = 0; i <= 10; i = i + 1)
         begin
             round_key_flat[i*128 +: 128] = {w[4*i], w[4*i+1], w[4*i+2], w[4*i+3]};
         end
     end
+
 endmodule

@@ -4,8 +4,8 @@ module tb_sbox;
 
 
   sbox uut (
-    .endereco(endereco),
-    .dado(dado)
+    .addr(endereco),
+    .data(dado)
   );
 
  // teste de todos os 256 valores de 8 bits da tabela sbox

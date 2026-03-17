@@ -1,11 +1,10 @@
-module top_i2c_aes128(
+module top_aes128(
     output reg [127:0] cipher,
     output reg         done,
-    // inout sda,
-    // input scl,
     input [127:0] word, // for a initial test, will not use the i2c
     input [127:0] key,
     input operation,
+    input start,
     input clock,
     input reset
 );
@@ -14,22 +13,12 @@ module top_i2c_aes128(
     parameter CALCULATION_STATE = 2'b01;
     parameter RESULT_STATE = 2'b10;
 
-    wire [127:0] /*word, key,*/ outCripto, outDecripto;
+    wire [127:0] outCripto, outDecripto;
 
-    //wire operation; // 0: cripto, 1: decripto
-    wire startI2C;
-    wire doneI2C = 1;
     wire doneCripto, doneDecripto;
 
     reg enableCripto, enableDecripto;
 
-    // wire [263:0] auxI2Cout;
-    // assign word = auxI2Cout[263:136];
-    // assign key = auxI2Cout[135:8];
-    // assign operation = auxI2Cout[0];
-
-    //TODO: should the cripto be the master?
-    //i2c_slave                 i2c(auxI2Cout, ,startI2C, doneI2C, clock, reset, scl, sda);
     criptography_controller   cripto(outCripto, doneCripto, key, word, enableCripto, reset, clock);
     decriptography_controller decripto(outDecripto, doneDecripto, key, word, enableDecripto, reset, clock);
 
@@ -48,7 +37,7 @@ module top_i2c_aes128(
                     enableDecripto = 1'b0;
                     done = 1'b0;
 
-                    if(doneI2C)
+                    if(start)
                     begin
                         enableCripto = !operation;
                         enableDecripto = operation;
@@ -78,12 +67,15 @@ module top_i2c_aes128(
                 begin
                     done = 1'b1;
 
-                    if(!startI2C)
+                    if(!start)
                     begin
                         currentState = RESET_STATE;
                     end
                     else
                     begin
+                        done = 1'b0;
+                        enableCripto = !operation;
+                        enableDecripto = operation;
                         currentState = CALCULATION_STATE;
                     end
                 end

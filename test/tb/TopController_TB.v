@@ -8,17 +8,34 @@ module top_i2c_aes128_TB;
     wire done;
     wire [127:0] saida;
 
-    reg [127:0] word, key, cipher;
-    reg operation;
+    reg [127:0] word, key;
+    reg operation, start;
 
     clockGenerator #(10) clkGenerator(clk); // Gerador de clock geral 100Mhz (10ns)
-    top_i2c_aes128 tb_top(saida, done, word, key, operation, clk, rst); //Instancia do Modulo TOP
+    top_aes128 tb_top(saida, done, word, key, operation, start, clk, rst); //Instancia do Modulo TOP
 
     initial begin
         rst = 1;
+        start = 0;
         #15 rst = 0;
+
+        word = 128'h00112233445566778899aabbccddeeff;
+        key = 128'h000102030405060708090a0b0c0d0e0f;
+        operation = 0;
+        start = 1;
+        #20 start = 0;
+
+        #5000
+        word = 128'h3243f6a8885a308d313198a2e0370734;
+        key = 128'h2b7e151628aed2a6abf7158809cf4f3c;
+        start = 1;
+        #20 start = 0;
+
+
+
+
         //Chamada para as tasks de teste com os valores (id, palavra, resultado ciphra)
-        executarTeste(0, 128'h00112233445566778899aabbccddeeff, 128'h000102030405060708090a0b0c0d0e0f, 128'h69c4e0d86a7b0430d8cdb78070b4c55a);
+        // executarTeste(0, 128'h00112233445566778899aabbccddeeff, 128'h000102030405060708090a0b0c0d0e0f, 128'h69c4e0d86a7b0430d8cdb78070b4c55a);
         // executarTeste(1, 128'h3243f6a8885a308d313198a2e0370734, 128'h2b7e151628aed2a6abf7158809cf4f3c, 128'h3925841d02dc09fbdc118597196a0b32);
         // executarTeste(2, 128'h00000000000000000000000000000000, 128'h00000000000000000000000000000000, 128'h66e94bd4ef8a2c3b884cfa59ca342b2e);
         // executarTeste(3, 128'hffffffffffffffffffffffffffffffff, 128'h00000000000000000000000000000000, 128'h3f5b8cc9ea855a0afa7347d23e8d664e);

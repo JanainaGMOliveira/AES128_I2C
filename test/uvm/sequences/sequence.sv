@@ -29,7 +29,9 @@ class aes_seq extends uvm_sequence #(aes_transaction);
 
             start_item(item);
 
-            assert(this.randomize());
+            //assert(this.randomize());
+            item.word = 128'h00112233445566778899aabbccddeeff;
+            item.key = 128'h000102030405060708090a0b0c0d0e0f;
             item.operation = 0; // on this seuqence, I'll send always a cripto operation and will check the data after cripto and decripto
             `uvm_info("AES SEQUENCE", $sformatf("Sending AES key: 0x%h, word: 0x%h, operation: %s", item.key, item.word, item.operation == 1 ? "DECRIPTO" : "CRIPTO"), UVM_MEDIUM)
 

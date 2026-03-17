@@ -20,17 +20,16 @@ class aes_test extends uvm_test;
         super.build_phase(phase);
         
         env = aes_env::type_id::create("env", this);
+        `uvm_info("AES TEST", "End build_fase", UVM_HIGH);
     endfunction
 
     task run_phase(uvm_phase phase);
         aes_seq seq;
-        
         phase.raise_objection(this);
         
         seq = aes_seq::type_id::create("seq");
         seq.start(env.aes_agt.sequencer);
-        
-        #10us;
+
         phase.drop_objection(this);
     endtask
 endclass : aes_test

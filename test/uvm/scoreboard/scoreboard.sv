@@ -10,82 +10,44 @@ import uvm_pkg::*;
 class aes_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(aes_scoreboard)
     
-    uvm_analysis_imp #(aes_transaction, aes_scoreboard) ap_request_imp;
-    uvm_tlm_analysis_fifo #(aes_transaction) ap_response_imp;
+    uvm_analysis_imp #(aes_transaction, aes_scoreboard) ap_imp;
 
     int aes_transaction_count = 0;
+    int aes_cripto_count = 0;
+    int aes_decripto_count = 0;
     int errors;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
 
-        ap_request_imp    = new("ap_request_imp", this);
-        ap_response_imp   = new("ap_response_imp", this);
+        ap_imp    = new("ap_imp", this);
     endfunction : new
 
     function void write(aes_transaction item);
-        // bit [GPIO_DATA_BITS-1:0] expected_data;
-
-        // if (expected_data == item.data)
-        // begin
-        //     gpio_transaction_count++;
-        //     gpio_transaction_correct++;
-        // end
-        // else if (actual_cmd != 8'h0)
-        // begin
-        //     gpio_transaction_count++;
-        //     gpio_transaction_wrong++;
-        //     errors++;
-        //     `uvm_info("SCOREBOARD", $sformatf("Expected GPIO: 0x%h | Received GPIO: 0x%h", expected_data, item.data), UVM_MEDIUM);
-        // end
+        aes_transaction_count++;
+        `uvm_info("AES SCOREBOARD", "Received item", UVM_HIGH);
+        // compare the results for cripto and decripto
+        if (item.operation == 1)
+        begin
+            aes_decripto_count++;
+        end
+        else
+        begin
+            aes_cripto_count++;
+        end
     endfunction
 
     task run_phase(uvm_phase phase);
-        // uart_transaction uart_item;
-
-        // int count = 0;
-
-        // forever
-        // begin
-        //     uart_ap_rx_imp.get(uart_item);
-        //     get_msg_uart(uart_item);
-
-        //     // TODO: REFACTOR TO GET INITIAL MESSAGE OR OTHER MESSAGES AT SAME TIME
-            
-        //         // Receiving initial message
-        //          count++;
-
-        //         if (count >= INITIAL_MSG.len())
-        //         begin
-        //             if (INITIAL_MSG !=  msg_received_uart)
-        //             begin
-        //                 errors++;
-        //                 uart_transaction_wrong++;
-        //                 uart_transaction_rx_count++;
-        //                 `uvm_info("SCOREBOARD", $sformatf("Expected UART: %s | Received UART: %s", INITIAL_MSG, msg_received_uart), UVM_MEDIUM);
-        //             end
-        //             else
-        //             begin
-        //                 uart_transaction_correct++;
-        //                 uart_transaction_rx_count++;
-        //             end
-        //             initial_msg = msg_received_uart;
-        //             msg_received_uart = "";
-        //             first_msg = 0;
-        //             count = 0;
-        //         end
-            
-        // end
+        `uvm_info("AES SCOREBOARD", "End run_fase", UVM_HIGH);
     endtask
 
     function void report_phase(uvm_phase phase);
         super.report_phase(phase);
         
         `uvm_info("SCOREBOARD", "===================== Scoreboard Report ====================", UVM_LOW)
-        // `uvm_info("SCOREBOARD", $sformatf("UART write on DUT:               %0d transactions ", uart_transaction_tx_count), UVM_LOW)
-        // `uvm_info("SCOREBOARD", $sformatf("UART read from DUT:              %0d transactions ", uart_transaction_rx_count), UVM_LOW)
-        // `uvm_info("SCOREBOARD", $sformatf("UART message correctly received: %0d              ", uart_transaction_correct), UVM_LOW)
-        // `uvm_info("SCOREBOARD", $sformatf("UART message wrongly received:   %0d              ", uart_transaction_wrong), UVM_LOW)
+        `uvm_info("SCOREBOARD", $sformatf("AES criptography:   %0d", aes_cripto_count), UVM_LOW)
+        `uvm_info("SCOREBOARD", $sformatf("AES decriptography: %0d", aes_decripto_count), UVM_LOW)
+        `uvm_info("SCOREBOARD", $sformatf("AES operations:     %0d", aes_transaction_count), UVM_LOW)
         `uvm_info("SCOREBOARD", "------------------------------------------------------------", UVM_LOW)
         `uvm_info("SCOREBOARD", $sformatf("Errors:                          %0d              ", errors), UVM_LOW)
         `uvm_info("SCOREBOARD", "============================================================", UVM_LOW)

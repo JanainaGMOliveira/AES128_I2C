@@ -12,12 +12,13 @@ module uvm_tb_top;
    
     aes_bfm  bfm();
 
-    top_i2c_aes128 DUT(
+    top_aes128 DUT(
         .cipher   (bfm.cipher),
         .done     (bfm.done),
         .word     (bfm.word),
         .key      (bfm.key),
         .operation(bfm.operation),
+        .start    (bfm.start),
         .clock    (bfm.clk),
         .reset    (bfm.reset)
     );
@@ -37,7 +38,7 @@ module uvm_tb_top;
     begin
         fork
             bfm.generate_clock(CLK_PERIOD);
-            bfm.reset_pulse(1, 5, "Sync", 1);
+            bfm.reset_pulse(1, 2, "Sync", 1);
         join_none
     end
     

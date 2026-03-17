@@ -12,7 +12,8 @@ interface aes_bfm;
     bit [127:0] word;
     bit [127:0] key;
     bit operation;
-
+    bit start;
+    
     // Outputs
     bit [127:0] cipher;
     bit         done;

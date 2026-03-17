@@ -27,6 +27,8 @@ class aes_driver extends uvm_driver #(aes_transaction);
     task run_phase(uvm_phase phase);
         aes_transaction item;
 
+        @(negedge bfm.reset);
+
         forever
         begin
             seq_item_port.get_next_item(item);
@@ -39,18 +41,27 @@ class aes_driver extends uvm_driver #(aes_transaction);
 
     task send_command(aes_transaction item);
         // Send the cripto command
-        bfm.word      = item.word;
-        bfm.key       = item.key;
-        bfm.operation = item.operation;
+        bfm.start     <= 1;
+        bfm.word      <= item.word;
+        bfm.key       <= item.key;
+        bfm.operation <= item.operation;
+
+        @(posedge bfm.clk)
+        bfm.start     <= 0;
 
         // Wait done
-        @(posedge bfm.done)
+        @(posedge bfm.done) // to not send any command before the previous end
         @(posedge bfm.clk)
-        item.cipher = bfm.cipher;
-
         // Send inverse command
-        bfm.operation = ~item.operation;
-        bfm.word      = bfm.cipher;
+        bfm.start     <= 1;
+        bfm.operation <= ~item.operation;
+        bfm.word      <= bfm.cipher;
+
+        @(posedge bfm.clk)
+        bfm.start     <= 0;
+
+        @(posedge bfm.done);
+        @(posedge bfm.clk);
     endtask
 endclass : aes_driver
 `endif

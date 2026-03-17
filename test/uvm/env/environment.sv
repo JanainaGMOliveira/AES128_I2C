@@ -32,10 +32,8 @@ class aes_env extends uvm_env;
     function void connect_phase(uvm_phase phase);
         super.connect_phase(phase);
 
-        aes_agt.monitor.ap_request.connect(scoreboard.ap_response_imp.analysis_export);
-        aes_agt.monitor.ap_response.connect(scoreboard.ap_request_imp);
-        aes_agt.monitor.ap_request.connect(aes_cvg.analysis_export);
-
+        aes_agt.monitor.ap.connect(scoreboard.ap_imp);
+        aes_agt.monitor.ap.connect(aes_cvg.analysis_export);
     endfunction
 endclass : aes_env
 

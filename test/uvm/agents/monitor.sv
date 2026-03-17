@@ -10,18 +10,12 @@ class aes_monitor extends uvm_monitor;
     `uvm_component_utils(aes_monitor)
     
     virtual aes_bfm bfm;
-    uvm_analysis_port #(aes_transaction) ap_response;
-    uvm_analysis_port #(aes_transaction) ap_request;
-
-    uvm_event ev_initial_msg_done;
+    uvm_analysis_port #(aes_transaction) ap;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
 
-        ap_response = new("ap_response", this);
-        ap_request = new("ap_request", this);
-
-        ev_initial_msg_done = uvm_event_pool::get_global("ev_initial_msg_done");
+        ap = new("ap", this);
     endfunction
     
     function void build_phase(uvm_phase phase);
@@ -31,59 +25,7 @@ class aes_monitor extends uvm_monitor;
     endfunction
     
     task run_phase(uvm_phase phase);
-        aes_transaction transaction_rx, transaction_tx;
-        // bit [UART_DATA_BITS-1:0] data_byte_rx, data_byte_tx;
-        // bit erro_rx, erro_tx, timed_out;
-
-        // // TODO: REFACTOR TO GET INITIAL MESSAGE OR OTHER MESSAGES AT SAME TIME
-
-        // // Monitorar mensagem inicial
-        // repeat(INITIAL_MSG.len())
-        // begin
-        //     monitor_aes(1'b1, data_byte_rx, erro_rx);  // DUT enviando para UART
-
-        //     transaction_rx = aes_transaction::type_id::create("transaction_rx");
-        //     transaction_rx.data = data_byte_rx;
-        //     transaction_rx.framing_error = erro_tx;
-
-        //     ap_rx.write(transaction_rx);
-        // end
-
-        // ev_initial_msg_done.trigger();
-        
-        // fork
-        //     forever
-        //     begin
-        //         monitor_aes(1'b0, data_byte_tx, erro_tx); // UART enviando para DUT
-
-        //         transaction_tx = aes_transaction::type_id::create("transaction_tx");
-        //         transaction_tx.data = data_byte_tx;
-        //         transaction_tx.framing_error = erro_tx;
-
-        //         ap_tx.write(transaction_tx);
-        //     end
-        
-        //     forever
-        //     begin
-        //         monitor_aes(1'b1, data_byte_rx, erro_rx); // DUT enviando para UART
-
-        //         transaction_rx = aes_transaction::type_id::create("transaction_rx");
-        //         transaction_rx.data = data_byte_rx;
-        //         transaction_rx.framing_error = erro_rx;
-
-        //         ap_rx.write(transaction_rx);
-                
-        //     end
-
-        //     begin
-        //         #(100ms);
-        //         timed_out = 1;
-        //         `uvm_error("UART MONITOR", "Timeout! UART não enviou nenhum comando em 100ms")
-        //     end
-        // join_any
-        // disable fork;
-
-        // if (timed_out) return;
+        monitor_aes();
     endtask
 
     task monitor_aes();
@@ -91,12 +33,16 @@ class aes_monitor extends uvm_monitor;
 
         forever
         begin
-            @(bfm.key)
+            @(posedge bfm.done)
+            `uvm_info("AES MONITOR", "Received done", UVM_HIGH);
 
             transaction = aes_transaction::type_id::create("transaction");
-            transaction.key = bfm.key;
+            transaction.key       = bfm.key;
+            transaction.word      = bfm.word;
+            transaction.cipher    = bfm.cipher;
+            transaction.operation = bfm.operation;
 
-            ap_request.write(transaction);
+            ap.write(transaction);
         end
     endtask
 endclass : aes_monitor

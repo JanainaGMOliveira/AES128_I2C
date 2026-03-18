@@ -9,15 +9,63 @@ import uvm_pkg::*;
 class aes_coverage extends uvm_subscriber #(aes_transaction);
     `uvm_component_utils(aes_coverage)
 
+    aes_transaction item;
+
     covergroup aes_cg;
-        option.per_instance = 1;
-        // command_cp : coverpoint current_command {
-        //     bins all_cmds[] = { SEND_DATA_TO_GPIO,
-        //                         SEND_DATA_TO_SPI,
-        //                         SEND_DATA_TO_I2C,
-        //                         SEND_DATA_TO_UART
-        //                     };
+        cp_operation: coverpoint item.operation {
+            bins encrypt = {0};
+            bins decrypt = {1};
+        }
+
+        cp_word: coverpoint item.word {
+            bins zero        = {128'h0};
+            bins all_ones    = {128'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF};
+            bins alternating = {128'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA};
+            bins random      = default;
+        }
+
+        cp_key: coverpoint item.key {
+            bins zero        = {128'h0};
+            bins all_ones    = {128'hFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF};
+            bins alternating = {128'hAAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA_AAAA};
+            bins random      = default;
+        }
+
+        cp_cipher: coverpoint item.cipher {
+            bins zero     = {128'h0};
+            bins non_zero = default;
+        }
+
+        cp_op_transition: coverpoint item.operation {
+            bins enc_to_enc = (1 => 1);
+            bins dec_to_dec = (0 => 0);
+            bins enc_to_dec = (1 => 0);
+            bins dec_to_enc = (0 => 1);
+        }
+
+        cx_op_word: cross cp_operation, cp_word;
+
+        cx_op_key: cross cp_operation, cp_key;
+
+        // cx_word_key: cross cp_word, cp_key {
+        //     bins word_eq_key_zero = binsof(cp_word.zero) && binsof(cp_key.zero);
+        //     bins word_eq_key_ones = binsof(cp_word.all_ones) && binsof(cp_key.all_ones);
+        //     bins word_eq_key_alt  = binsof(cp_word.alternating) && binsof(cp_key.alternating);
+        //     bins zero_word_max_key = binsof(cp_word.zero) && binsof(cp_key.all_ones);
+        //     bins max_word_zero_key = binsof(cp_word.all_ones) && binsof(cp_key.zero);
+
+        //     ignore_bins uninteresting = binsof(cp_word.random) && binsof(cp_key.random);
         // }
+
+        cx_zero_check: cross cp_cipher, cp_word, cp_key
+        {
+            bins legit_zero = binsof(cp_cipher.zero) 
+                        && binsof(cp_word.zero) 
+                        && binsof(cp_key.zero);
+            
+            // bins suspicious = binsof(cp_cipher.zero) 
+            //             && binsof(cp_word.random);
+        }
     endgroup
 
     function new(string name, uvm_component parent);
@@ -26,8 +74,8 @@ class aes_coverage extends uvm_subscriber #(aes_transaction);
     endfunction
     
     function void write(aes_transaction t);
+        item = t;
         aes_cg.sample();
-        `uvm_info("AES COVERAGE", $sformatf("Sampled Data: 0x%h", t.word), UVM_HIGH)
     endfunction
     
     function void report_phase(uvm_phase phase);

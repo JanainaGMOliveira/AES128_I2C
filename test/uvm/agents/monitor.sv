@@ -34,7 +34,6 @@ class aes_monitor extends uvm_monitor;
         forever
         begin
             @(posedge bfm.done)
-            `uvm_info("AES MONITOR", "Received done", UVM_HIGH);
 
             transaction = aes_transaction::type_id::create("transaction");
             transaction.key       = bfm.key;

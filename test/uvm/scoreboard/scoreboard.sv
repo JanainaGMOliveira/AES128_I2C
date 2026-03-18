@@ -16,6 +16,13 @@ class aes_scoreboard extends uvm_scoreboard;
     int aes_cripto_count = 0;
     int aes_decripto_count = 0;
     int errors;
+    
+    bit [AES_DATA_BITS-1:0] wordInputCripto;
+    bit [AES_DATA_BITS-1:0] cipherOutputCripto;
+    bit [AES_DATA_BITS-1:0] wordOutputDecripto;
+    bit [AES_DATA_BITS-1:0] cipherInputDecripto;
+    bit [AES_DATA_BITS-1:0] keyCripto;
+    bit [AES_DATA_BITS-1:0] keyDecripto;
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
@@ -25,21 +32,41 @@ class aes_scoreboard extends uvm_scoreboard;
 
     function void write(aes_transaction item);
         aes_transaction_count++;
-        `uvm_info("AES SCOREBOARD", "Received item", UVM_HIGH);
-        // compare the results for cripto and decripto
+        
         if (item.operation == 1)
         begin
+            keyDecripto = item.key;
+            cipherInputDecripto = item.word;
+            wordOutputDecripto = item.cipher;
             aes_decripto_count++;
         end
         else
         begin
+            keyCripto = item.key;
+            wordInputCripto = item.word;
+            cipherOutputCripto = item.cipher;
             aes_cripto_count++;
         end
+
+        if (item.cipher === 128'h0 && item.word !== 128'h0)
+            `uvm_error("SCOREBOARD", $sformatf("Cipher is zero to word=%h key=%h op=%0b", item.word, item.key, item.operation))
+
+        check_values();
     endfunction
 
-    task run_phase(uvm_phase phase);
-        `uvm_info("AES SCOREBOARD", "End run_fase", UVM_HIGH);
-    endtask
+    function check_values();
+        if (aes_decripto_count == aes_cripto_count && aes_transaction_count != 0)
+        begin
+            if (keyCripto == keyDecripto && cipherOutputCripto == cipherInputDecripto) // the cripto output is the decripto input
+            begin
+                if (wordInputCripto != wordOutputDecripto)
+                begin
+                    errors++;
+                    `uvm_info("SCOREBOARD", $sformatf("Input cripto: %h | Output decripto: %h", wordInputCripto, wordOutputDecripto), UVM_MEDIUM);
+                end
+            end
+        end
+    endfunction
 
     function void report_phase(uvm_phase phase);
         super.report_phase(phase);

@@ -24,11 +24,13 @@ class aes_test extends uvm_test;
     endfunction
 
     task run_phase(uvm_phase phase);
-        aes_seq seq;
+        aes_random_seq seq_random = aes_random_seq::type_id::create("seq_random");
+        aes_corner_seq seq_corner = aes_corner_seq::type_id::create("seq_corner");
+
         phase.raise_objection(this);
         
-        seq = aes_seq::type_id::create("seq");
-        seq.start(env.aes_agt.sequencer);
+        seq_random.start(env.aes_agt.sequencer);
+        seq_corner.start(env.aes_agt.sequencer);
 
         phase.drop_objection(this);
     endtask

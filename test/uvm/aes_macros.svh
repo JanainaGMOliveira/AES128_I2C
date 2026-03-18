@@ -5,5 +5,5 @@
 
     localparam AES_DATA_BITS = 128;
 
-    localparam MAX_TRANSACTIONS = 2;
+    localparam MAX_TRANSACTIONS = 50;
 `endif
